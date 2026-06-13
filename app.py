@@ -92,13 +92,18 @@ if category == "교과 세특":
         st.code(current_generated_text)
 
 else:
-    st.subheader(f"🍀 {selected_class} 학급 창체 활동 배치")
-    col1, col2 = st.columns(2)
-    with col1: auto_sel = st.multiselect("자율활동", CHANGCHE_ACTS)
-    with col2: career_sel = st.multiselect("진로활동", CHANGCHE_ACTS)
+    st.subheader(f"🍀 {selected_class} 창체 활동별 세특 입력")
     
-    if st.button("✨ 창체 기록 합치기"):
-        res_auto = f"{actual_name} 학생은 " + " ".join([f"{a} 활동에 참여함." for a in auto_sel])
-        res_career = f"{actual_name} 학생은 " + " ".join([f"{c} 활동을 통해 역량을 보여줌." for c in career_sel])
-        current_generated_text = f"[자율]\n{res_auto}\n\n[진로]\n{res_career}"
-        st.code(current_generated_text)
+    # 7가지 활동을 사이드바가 아닌 메인 영역 탭으로 구현
+    tabs = st.tabs(CHANGCHE_ACTS)
+    
+    for i, act_name in enumerate(CHANGCHE_ACTS):
+        with tabs[i]:
+            st.subheader(f"📖 {act_name} 기록")
+            # 입력창 생성
+            content = st.text_area(f"{act_name} 세특 내용을 입력하세요:", key=f"text_{i}")
+            
+            # 저장 버튼 및 결과 확인
+            if st.button(f"{act_name} 저장", key=f"btn_{i}"):
+                st.success(f"[{act_name}] 내용이 저장되었습니다.")
+                st.code(content)
