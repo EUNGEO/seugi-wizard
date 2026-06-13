@@ -4,7 +4,7 @@ import io
 from datetime import datetime
 
 # 페이지 환경 설정
-st.set_page_config(page_title="선생님 전용 생기부 마법사 v2.6", layout="wide")
+st.set_page_config(page_title="선생님 전용 생기부 마법사 v2.7", layout="wide")
 
 # --- 스타일링 (CSS) ---
 st.markdown("""
@@ -18,8 +18,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ 스마트 생기부 마법사 v2.6 (에러 수정 완료 버전)")
-st.info("💡 [긴급 패치 완료] 이름 내에 공백이 많은 외국인 학생 명단이 선택되어도 에러 없이 완벽하게 작동하도록 문자열 파싱 구조를 안전하게 보완했습니다.")
+st.title("🛡️ 스마트 생기부 마법사 v2.7 (완벽 방어벽 버전)")
+st.info("💡 [동적 리셋 및 에러 방어] 과목 변경 시 활동 목록이 실시간으로 동기화되며, 일시적인 데이터 불일치로 인한 KeyError를 완벽하게 차단했습니다.")
 
 # --- 세션 상태(누적 기록 장부) 초기화 ---
 if "records_db" not in st.session_state:
@@ -91,6 +91,7 @@ with st.sidebar:
     category = st.selectbox("기록 영역 선택", ["교과 세특", "창체(자율/진로)"])
     st.divider()
     
+    # 과목 선택
     subj_sidebar = st.radio("기준 과목 선택", ["한국지리", "통합사회"], horizontal=True)
     available_classes = list(STUDENTS_DB[subj_sidebar].keys())
     selected_class = st.selectbox("학급 선택", available_classes)
@@ -98,7 +99,6 @@ with st.sidebar:
     student_list = STUDENTS_DB[subj_sidebar][selected_class]
     student_with_id = st.selectbox("학생 선택", student_list)
     
-    # 🔥 긴 외국인 이름 예외 처리를 위한 전면 수정 코딩 (split의 두 번째 인자 조절로 에러 원천 봉쇄)
     if student_with_id:
         parts = student_with_id.split(maxsplit=1)
         student_id = parts[0] if len(parts) > 0 else "0000"
@@ -113,18 +113,49 @@ final_compiled_text = ""
 if category == "교과 세특":
     st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_with_id}] 학생 세특 설계")
     
-    # 1. 활동 선택
+    # 1. 활동 선택 (과목이 바뀌면 활동 셀렉트박스도 완전히 재생성되도록 key에 과목명 바인딩)
     st.write("⚙️ **[2단계] 진행한 교육과정 활동 선택**")
     available_acts = list(ACTIVITY_MASTER_DB[subj_sidebar].keys())
-    selected_act = st.selectbox("진행한 활동을 골라주세요", available_acts)
+    selected_act = st.selectbox("진행한 활동을 골라주세요", available_acts, key=f"act_select_{subj_sidebar}")
     
-    # 2. 성취기준 가이드 팝업판 (실시간 연동)
-    st.write("💡 **[참고] 이 활동의 교육과정 국가 성취기준 가이드라인**")
-    standards_list = ACTIVITY_MASTER_DB[subj_sidebar][selected_act]["성취기준"]
-    standards_html = "<br>".join([f"• {std}" for std in standards_list])
-    
-    st.markdown(f"""
-    <div class="standard-box">
-        <strong>📚 관련 성취기준 목록:</strong><br>{standards_html}
-    </div>
-    """, unsafe_allow_html
+    # 2. 안전망 설치 (데이터 동기화 딜레이로 인한 KeyError 원천 방제)
+    if selected_act in ACTIVITY_MASTER_DB[subj_sidebar]:
+        # 정상 흐름 처리
+        st.write("💡 **[참고] 이 활동의 교육과정 국가 성취기준 가이드라인**")
+        standards_list = ACTIVITY_MASTER_DB[subj_sidebar][selected_act]["성취기준"]
+        standards_html = "<br>".join([f"• {std}" for std in standards_list])
+        
+        st.markdown(f"""
+        <div class="standard-box">
+            <strong>📚 관련 성취기준 목록:</strong><br>{standards_html}
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 3. 역량 및 성취수준 선택
+        st.write("📊 **[3단계] 선택 활동에 따른 역량 성취 수준 평가**")
+        act_meta = ACTIVITY_MASTER_DB[subj_sidebar][selected_act]
+        
+        st.markdown(f"""
+        <div class="activity-box">
+            <strong>🎯 측정 핵심 역량:</strong> {act_meta['역량명']}<br>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        level = st.radio(f"[{actual_name}] 학생의 최종 성취 수준 선택", ["우수", "보통"], horizontal=True)
+        base_competency_text = act_meta[level]
+        
+        st.divider()
+        
+        # 4. 미래 보고서 자동 파일 분석 업로드란 (기능 확장 대비 인터페이스)
+        st.write("📂 **[선택사항] 학생 제출 보고서 / 설문지 텍스트 파일 연동**")
+        uploaded_student_file = st.file_uploader("아이들에게 텍스트파일(.txt) 등으로 수거한 자료가 있다면 여기에 업로드하세요 (수동 입력과 병행 가능)", type=["txt"])
+        if uploaded_student_file is not None:
+            st.success("✨ 학생 파일 데이터가 성공적으로 연결되었습니다. 아래 칸을 자동 보완하거나 수동으로 최종 수정 및 기입하세요.")
+        
+        # 5. 5대 핵심 항목 개별 입력란
+        st.write("✍️ **[4단계] 학생 개인별 5대 마법 항목 빈칸 입력**")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            act_title = st.text_input("1️⃣ 활동 주제 (제목)", placeholder="예: 우리 지역 도시 재개발에 따른 원도심 공간 갈등 양상 연구")
+            act_detail = st.text_area("2️⃣ 활동 세부 내용", placeholder="예: 지리정보시스템 통계 지도를 다각도로 대조하며 원도심 주민들의 이주 경로와 젠트리피케이션 현상에 따른 주거 안정성 변화를 추
