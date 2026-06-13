@@ -17,7 +17,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- DB 설정 ---
+# --- 학생 데이터베이스 ---
 STUDENTS_DB = {
     "한국지리": {
         "301반": ["3103 김도엽", "3113 박정우", "3115 박준아", "3117 서성웅", "3119 심원경", "3132 한기웅", "3202 곽영훈", "3203 김민성", "3204 김세영", "3206 김재희", "3209 박민기", "3212 백하얼", "3216 양서율", "3219 이수호", "3220 이시우", "3229 최민기", "3231 최은혁", "3308 김은중", "3312 박건민", "3317 방찬희", "3322 신현재", "3332 홍민우", "3333 홍정민", "3415 오호준", "3431 주동현"],
@@ -29,7 +29,7 @@ STUDENTS_DB = {
         "1학년 3반": ["1301 KAN VLADISLAV DMITRIEVICH", "1302 강민준", "1303 강범준", "1304 고희준", "1305 김동명", "1306 김민범", "1307 김비오", "1308 김습정", "1309 김재원", "1310 김진구", "1311 박수기", "1312 박윤호", "1313 박종하", "1314 박휘건", "1315 양희모", "1316 유재현", "1317 이민우", "1318 이성민", "1319 이재준", "1320 이호진", "1321 장민재", "1322 장지호", "1323 장호성", "1324 정민건", "1325 정지율", "1326 정현수", "1327 조성원", "1328 조성학", "1329 조성흠", "1330 최우진", "1331 한준규", "1332 홍석환", "1333 황정민", "1334 황준서", "1335 황준혁"],
         "1학년 4반": ["1401 TSOI MAKSIM", "1402 강민건", "1403 강산", "1404 고동균", "1405 권혁준", "1406 김승준", "1407 김시훈", "1408 김주호", "1409 김치연", "1410 김호범", "1411 박보솔", "1412 박성진", "1413 변은혁", "1414 설도윤", "1415 손호빈", "1416 신유민", "1417 양서준", "1418 오주호", "1419 유승엽", "1420 유우연", "1421 윤태영", "1422 이건우", "1423 이경빈", "1424 이동희", "1425 이민수", "1426 이주헌", "1427 이한울", "1428 이현성", "1429 이호연", "1430 장수혁", "1431 전은도", "1432 정재훈", "1433 조관호", "1434 최선규", "1435 최재환"]
     },
-    "창체_전체": {
+    "창체": {
         "3학년 2반": ["3201 김대현", "3202 곽영훈", "3203 김민성", "3204 김세영", "3205 김시환", "3206 김재희", "3207 김지환", "3208 나평안", "3209 박민기", "3210 박정진", "3211 박희준", "3212 백하얼", "3213 서승우", "3214 서한울", "3215 심준식", "3216 양서율", "3217 오기택", "3218 이기은", "3219 이수호", "3220 이시우", "3221 이영조", "3222 이진오", "3223 이태양", "3224 임수혁", "3225 임종원", "3226 장우혁", "3227 전지우", "3228 진서준", "3229 최민기", "3230 최성훈", "3231 최은혁", "3232 홍예준", "3233 김진성"]
     }
 }
@@ -60,11 +60,10 @@ with st.sidebar:
         selected_class = st.selectbox("학급 선택", list(STUDENTS_DB[subj_sidebar].keys()))
         student_list = STUDENTS_DB[subj_sidebar][selected_class]
     else:
-        # 창체 선택 시 한국지리 DB의 3학년 2반 고정
-        subj_sidebar = "한국지리"
+        # 창체 명단 호출
         selected_class = "3학년 2반"
-        st.info(f"📌 대상 학급: {selected_class} (고정)")
-        student_list = STUDENTS_DB["한국지리"][selected_class]
+        st.info(f"📌 대상 학급: {selected_class}")
+        student_list = STUDENTS_DB["창체"][selected_class]
     
     student_with_id = st.selectbox("학생 선택", student_list)
     student_id = student_with_id.split(" ", 1)[0]
@@ -72,15 +71,15 @@ with st.sidebar:
 
 # --- 메인 영역 ---
 st.title("🛡️ 스마트 생기부 마법사 v2.0")
+st.success(f"현재 선택된 학생: {actual_name} ({student_with_id})")
 
 if category == "교과 세특":
-    st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_with_id}] 세특")
-    # ... (기존 교과 세특 로직 유지)
+    st.subheader(f"📖 {subj_sidebar} - {selected_class} 세특 입력")
     selected_act = st.selectbox("진행한 활동", list(ACTIVITY_MASTER_DB[subj_sidebar].keys()))
     act_meta = ACTIVITY_MASTER_DB[subj_sidebar][selected_act]
     level = st.radio("성취 수준", ["우수", "보통"], horizontal=True)
     base_text = act_meta[level]
-    # (입력 필드 및 문장 조합 로직은 기존과 동일)
+    
     act_title = st.text_input("1️⃣ 활동 주제")
     act_detail = st.text_area("2️⃣ 세부 내용")
     act_learned = st.text_area("3️⃣ 배운 점")
@@ -93,7 +92,7 @@ if category == "교과 세특":
         st.code(current_generated_text)
 
 else:
-    st.subheader(f"🍀 {selected_class} [{student_with_id}] 학급 창체 활동 배치")
+    st.subheader(f"🍀 {selected_class} 학급 창체 활동 배치")
     col1, col2 = st.columns(2)
     with col1: auto_sel = st.multiselect("자율활동", CHANGCHE_ACTS)
     with col2: career_sel = st.multiselect("진로활동", CHANGCHE_ACTS)
@@ -103,5 +102,3 @@ else:
         res_career = f"{actual_name} 학생은 " + " ".join([f"{c} 활동을 통해 역량을 보여줌." for c in career_sel])
         current_generated_text = f"[자율]\n{res_auto}\n\n[진로]\n{res_career}"
         st.code(current_generated_text)
-
-# (이후 저장 및 엑셀 로직 동일)
