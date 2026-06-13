@@ -1,7 +1,7 @@
 import streamlit as st
 
 # 페이지 환경 설정
-st.set_page_config(page_title="선생님 전용 생기부 마법사 v1.3", layout="wide")
+st.set_page_config(page_title="선생님 전용 생기부 마법사 v1.4", layout="wide")
 
 # --- 스타일링 (CSS) ---
 st.markdown("""
@@ -12,20 +12,20 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ 스마트 생기부 마법사 v1.3 (출석부 명단 완전 연동형)")
-st.info("💡 [명단 업데이트 완료] 한국지리(3학년) 및 통합사회(1학년) 학급별 명단 선택 기능이 추가되었습니다.")
+st.title("🛡️ 스마트 생기부 마법사 v1.4 (4자리 학번 완전 연동형)")
+st.info("💡 [업데이트 완료] 엑셀 출석부 기반으로 '4자리 학번(학년+반+번호)'이 이름 앞에 자동으로 결합되었습니다.")
 
-# --- 학생 명단 데이터베이스 ---
+# --- 학생 명단 데이터베이스 (학번 자동 결합 완료) ---
 STUDENTS_DB = {
     "한국지리": {
-        "3학년 1반": ["김도엽", "박정우", "박준아", "서성웅", "심원경", "한기웅"],
-        "3학년 2반": ["곽영훈", "김민성", "김세영", "김재희", "나평안", "서승우", "이기훈", "김도현", "김성현", "김현중", "김효민", "류기훈", "박성욱", "윤지현", "이수호"]
+        "3학년 1반": ["3103 김도엽", "3113 박정우", "3115 박준아", "3117 서성웅", "3119 심원경", "3132 한기웅"],
+        "3학년 2반": ["3202 곽영훈", "3203 김민성", "3204 김세영", "3206 김재희", "3208 나평안", "3213 서승우", "3218 이기훈", "3204 김도현", "3205 김성현", "3208 김현중", "3209 김효민", "3210 류기훈", "3212 박성욱", "3223 윤지현", "3224 이수호"]
     },
     "통합사회": {
-        "1학년 1반": ["강영훈", "김민찬", "김재엽", "김지호", "김진욱", "김태현", "김호영", "김환호", "김희락", "노동현", "박은혁", "박준성", "백이현", "서건희", "신백호", "양희성", "연태경", "오유찬", "유하빈", "윤성현", "이도현", "이상욱", "이승우"],
-        "1학년 2반": ["강하성", "권영하", "권준범", "김강호", "김동민", "김리안", "김민권", "김민재", "김중기", "김지후", "남상택", "박건웅", "박세진", "박정후", "손상범", "송준오", "신재원", "안현탁", "양승준", "오성택", "오연우", "윤정우", "이은유"],
-        "1학년 3반": ["KAN VLADISLAV", "강민준", "강범준", "고희준", "김동명", "김민범", "김비오", "김습정", "김재원", "김진구", "박수기", "박윤호", "박종하", "박휘건", "양희모", "유재현", "이민우", "이성민", "이재준", "이호진", "장민재", "장지호", "장호성"],
-        "1학년 4반": ["TSOI MAKSIM", "강민건", "강산", "고동균", "권혁준", "김승준", "김시훈", "김주호", "김치연", "김호범", "박보솔", "박성진", "변은혁", "설도윤", "손호빈", "신유민", "양서준", "오주호", "유승엽", "유우연", "윤태영", "이건우", "이경빈"]
+        "1학년 1반": ["1101 강영훈", "1102 김민찬", "1103 김재엽", "1104 김지호", "1105 김진욱", "1106 김태현", "1107 김호영", "1108 김환호", "1109 김희락", "1110 노동현", "1111 박은혁", "1112 박준성", "1113 백이현", "1114 서건희", "1115 신백호", "1116 양희성", "1117 연태경", "1118 오유찬", "1119 유하빈", "1120 윤성현", "1121 이도현", "1122 이상욱", "1123 이승우"],
+        "1학년 2반": ["1201 강하성", "1202 권영하", "1203 권준범", "1204 김강호", "1205 김동민", "1206 김리안", "1207 김민권", "1208 김민재", "1209 김중기", "1210 김지후", "1211 남상택", "1212 박건웅", "1213 박세진", "1214 박정후", "1215 손상범", "1216 송준오", "1217 신재원", "1218 안현탁", "1219 양승준", "1220 오성택", "1221 오연우", "1222 윤정우", "1223 이은유"],
+        "1학년 3반": ["1301 KAN VLADISLAV", "1302 강민준", "1303 강범준", "1304 고희준", "1305 김동명", "1306 김민범", "1307 김비오", "1308 김습정", "1309 김재원", "1310 김진구", "1311 박수기", "1312 박윤호", "1313 박종하", "1314 박휘건", "1315 양희모", "1316 유재현", "1317 이민우", "1318 이성민", "1319 이재준", "1320 이호진", "1321 장민재", "1322 장지호", "1323 장호성"],
+        "1학년 4반": ["1401 TSOI MAKSIM", "1402 강민건", "1403 강산", "1404 고동균", "1405 권혁준", "1406 김승준", "1407 김시훈", "1408 김주호", "1409 김치연", "1410 김호범", "1411 박보솔", "1412 박성진", "1413 변은혁", "1414 설도윤", "1415 손호빈", "1416 신유민", "1417 양서준", "1418 오주호", "1419 유승엽", "1420 유우연", "1421 윤태영", "1422 이건우", "1423 이경빈"]
     }
 }
 
@@ -76,18 +76,20 @@ with st.sidebar:
     category = st.selectbox("기록 영역 선택", ["교과 세특", "창체(자율/진로)"])
     st.divider()
     
-    # 영역에 관계없이 과목과 명단을 유기적으로 연동하기 위한 설정
     subj_sidebar = st.radio("기준 과목 선택", ["한국지리", "통합사회"], horizontal=True)
     
     available_classes = list(STUDENTS_DB[subj_sidebar].keys())
     selected_class = st.selectbox("학급 선택", available_classes)
     
     student_list = STUDENTS_DB[subj_sidebar][selected_class]
-    student_name = st.selectbox("학생 이름 선택", student_list)
+    student_with_id = st.selectbox("학생 선택 (학번 포함)", student_list)
+    
+    # 완성 문장에는 '학번' 4자리가 들어가지 않도록 이름만 추출하는 로직
+    actual_name = student_with_id.split(" ", 1)[1] if " " in student_with_id else student_with_id
 
 # --- 메인 영역 ---
 if category == "교과 세특":
-    st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_name}] 학생 세특 작성")
+    st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_with_id}] 세특 작성")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -110,9 +112,9 @@ if category == "교과 세특":
         act_text = f"교과 수업 중 " + ", ".join(selected_acts) + " 등의 활동을 주도적으로 수행하였으며," if selected_acts else ""
         
         base_combined = " ".join(comp_texts)
-        final_text = f"{student_name} 학생은 {base_combined} {act_text} {memo}".strip()
+        final_text = f"{actual_name} 학생은 {base_combined} {act_text} {memo}".strip()
         
-        st.success(f"🎉 [{student_name}] 완성된 서술형 교과 세특 문구")
+        st.success(f"🎉 [{student_with_id}] 완성된 서술형 교과 세특 문구")
         st.code(final_text, language=None)
         
         b_size = calc_bytes(final_text)
@@ -122,7 +124,7 @@ if category == "교과 세특":
             st.success(f"✅ 나이스 입력 가능 수치: {b_size} / 1500 Byte")
 
 else:
-    st.subheader(f"🍀 {selected_class} [{student_name}] 학급 창체 활동 배치")
+    st.subheader(f"🍀 {selected_class} [{student_with_id}] 학급 창체 활동 배치")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -133,11 +135,11 @@ else:
         career_sel = st.multiselect("진로활동 배치 항목", DATA_ACTS["창체"], key="career")
         
     if st.button("✨ 창체 기록 합치기"):
-        res_auto = f"{student_name} 학생은 " + " ".join([f"{a} 활동에 참여하여 타인을 배려하는 태도를 바탕으로 학급 공동체 발전에 기여함." for a in auto_sel]) if auto_sel else "배정된 활동 없음"
-        res_career = f"{student_name} 학생은 " + " ".join([f"{c} 활동을 통해 자신의 진로 장벽을 진단하고, 이를 극복하기 위한 구체적인 탐구 역량을 보여줌." for c in career_sel]) if career_sel else "배정된 활동 없음"
+        res_auto = f"{actual_name} 학생은 " + " ".join([f"{a} 활동에 참여하여 타인을 배려하는 태도를 바탕으로 학급 공동체 발전에 기여함." for a in auto_sel]) if auto_sel else "배정된 활동 없음"
+        res_career = f"{actual_name} 학생은 " + " ".join([f"{c} 활동을 통해 자신의 진로 장벽을 진단하고, 이를 극복하기 위한 구체적인 탐구 역량을 보여줌." for c in career_sel]) if career_sel else "배정된 활동 없음"
         
         st.divider()
-        st.success(f"🎉 [{student_name}] 최종 창체 서술형 결과")
+        st.success(f"🎉 [{student_with_id}] 최종 창체 서술형 결과")
         st.text_area("자율활동 복사용 (한도 1500 Byte)", res_auto, height=120)
         st.caption(f"자율 바이트: {calc_bytes(res_auto)} Byte")
         st.text_area("진로활동 복사용 (한도 2100 Byte)", res_career, height=120)
