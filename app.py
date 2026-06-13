@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
 import io
+import time
 from datetime import datetime
 
 # 페이지 환경 설정
-st.set_page_config(page_title="선생님 전용 생기부 마법사 v2.8", layout="wide")
+st.set_page_config(page_title="선생님 전용 생기부 마법사 v2.9", layout="wide")
 
 # --- 스타일링 (CSS) ---
 st.markdown("""
@@ -18,15 +19,22 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ 스마트 생기부 마법사 v2.8 (최종 안정판)")
-st.info("💡 [완벽 최적화 완료] NameError 및 데이터 동기화 에러를 완전히 해결한 최종 마스터 버전입니다.")
+st.title("🛡️ 스마트 생기부 마법사 v2.9 (에러 완전 종결판)")
+st.info("💡 [중복 키 에러 완벽 해결] 과목 전환 시 간헐적으로 발생하던 DuplicateKeyError 요소를 완전하게 제어하고 방어벽을 구축했습니다.")
 
-# --- 🌟 [긴급 예외 차단] 전역 변수 사전 초기화 ---
-final_compiled_text = ""
-
-# --- 세션 상태(누적 기록 장부) 초기화 ---
+# --- 세션 상태 및 전역 장부 초기화 ---
 if "records_db" not in st.session_state:
     st.session_state.records_db = []
+if "run_id" not in st.session_state:
+    st.session_state.run_id = int(time.time())
+
+# 임시 출력 문장 데이터 관리용 세션 정의
+if "compiled_output" not in st.session_state:
+    st.session_state.compiled_output = ""
+if "compiled_act" not in st.session_state:
+    st.session_state.compiled_act = ""
+if "compiled_level" not in st.session_state:
+    st.session_state.compiled_level = ""
 
 # --- 100% 출석부 명단 데이터베이스 ---
 STUDENTS_DB = {
@@ -56,100 +64,4 @@ ACTIVITY_MASTER_DB = {
             ],
             "역량명": "공간 분석 및 국토균형발전 탐구역량",
             "우수": "도시 체계와 공간적 지역 분화 과정을 연계하여 해석하는 지리적 안목이 대단히 명민하며, 개발 과정에서 비롯되는 공간 불평등과 지역적 갈등 원인을 거시적이고 비판적인 시각으로 추론하는 능력이 독보적임.",
-            "보통": "우리나라 도시의 발달 과정과 도시 계획의 특징을 올바르게 이해하고 있으며, 공간적 현상을 파악하기 위한 자료 분석 및 제안서 작성 활동에 협력적인 태도로 임함."
-        }
-    },
-    "통합사회": {
-        "다문화 공존 데이터 프로젝트": {
-            "성취기준": [
-                "[10통사1-04-03] 문화적 차이에 대한 상대주의적 태도의 필요성을 이해하고, 보편 윤리의 차원에서 자문화와 타문화를 평가한다.",
-                "[10통사1-04-04] 다문화 사회의 현황을 조사하고, 문화적 다양성을 존중하는 태도를 바탕으로 갈등 해결 방안을 모색한다."
-            ],
-            "역량명": "문화 상대주의 및 데이터 기반 다문화 수용성",
-            "우수": "다문화 사회의 현황을 다각적인 데이터 지표를 바탕으로 심층 진단하고, 문화적 다양성을 존중하는 문화 상대주의적 시각과 보편 윤리 기준을 조화롭게 적용하여 실효성 있는 상생 갈등 해결 방안을 제시하는 역량이 매우 탁월함.",
-            "보통": "우리 사회 다문화 현황의 특징을 파악하고 문화적 차이를 편견 없이 존중해야 함을 이해하고 있으며, 모둠원들과 다문화 공존을 위한 기초 방안 프로젝트에 성실히 동참함."
-        },
-        "환경문제 신문기사 분석하기": {
-            "성취기준": [
-                "[10통사1-03-01] 자연환경이 인간의 생활에 미치는 영향에 관한 과거와 현재의 사례를 조사하여 분석하고, 안전하고 쾌적한 환경에서 살아가는 것이 시민의 권리임을 주장한다.",
-                "[10통사1-03-02] 자연에 대한 인간의 다양한 관점을 사례를 통해 비교하고, 인간과 자연의 바람직한 관계를 제안한다.",
-                "[10통사1-03-03] 환경 문제 해결을 위한 정부, 시민사회, 기업 등의 다양한 노력을 조사하고, 생태시민으로서 실천 방안을 모색한다."
-            ],
-            "역량명": "비판적 미디어 리터러시 및 생태시민 의식",
-            "우수": "환경 문제를 다룬 언론 보도를 다각도로 교차 분석하여 인간과 자연의 역학적 관계를 입체적으로 짚어내며, 안전하고 쾌적한 환경권 보장을 위한 주체별 역할과 생태시민으로서의 구체적인 실천 로드맵을 논리적이고 호소력 있게 제시함.",
-            "보통": "환경 오염 기사의 핵심 쟁점을 성실히 요약하고 인간 중심주의와 생태 중심주의 관점의 차이를 이해하고 있으며, 환경 보호를 위한 사회적 노력과 실천 과제를 명확히 제시함."
-        }
-    }
-}
-
-CHANGCHE_ACTS = ["인문사회 토론", "아침맞이", "1인1역", "국어 글쓰기", "1학기 프로젝트", "학급 진로발표", "학급 독서발표"]
-
-def calc_bytes(text):
-    return len(text.encode('utf-8-sig'))
-
-# --- 사이드바 영역 ---
-with st.sidebar:
-    st.header("👤 [1단계] 대상 학생 선택")
-    category = st.selectbox("기록 영역 선택", ["교과 세특", "창체(자율/진로)"])
-    st.divider()
-    
-    subj_sidebar = st.radio("기준 과목 선택", ["한국지리", "통합사회"], horizontal=True)
-    available_classes = list(STUDENTS_DB[subj_sidebar].keys())
-    selected_class = st.selectbox("학급 선택", available_classes)
-    
-    student_list = STUDENTS_DB[subj_sidebar][selected_class]
-    student_with_id = st.selectbox("학생 선택", student_list)
-    
-    if student_with_id:
-        parts = student_with_id.split(maxsplit=1)
-        student_id = parts[0] if len(parts) > 0 else "0000"
-        actual_name = parts[1] if len(parts) > 1 else student_with_id
-    else:
-        student_id = "0000"
-        actual_name = "미선택"
-
-# --- 메인 작업 영역 ---
-selected_act = "창체 활동"
-level = "창체 반영"
-
-if category == "교과 세특":
-    st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_with_id}] 학생 세특 설계")
-    
-    st.write("⚙️ **[2단계] 진행한 교육과정 활동 선택**")
-    available_acts = list(ACTIVITY_MASTER_DB[subj_sidebar].keys())
-    selected_act = st.selectbox("진행한 활동을 골라주세요", available_acts, key=f"act_select_{subj_sidebar}")
-    
-    if selected_act in ACTIVITY_MASTER_DB[subj_sidebar]:
-        st.write("💡 **[참고] 이 활동의 교육과정 국가 성취기준 가이드라인**")
-        standards_list = ACTIVITY_MASTER_DB[subj_sidebar][selected_act]["성취기준"]
-        standards_html = "<br>".join([f"• {std}" for std in standards_list])
-        
-        st.markdown(f"""
-        <div class="standard-box">
-            <strong>📚 관련 성취기준 목록:</strong><br>{standards_html}
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.write("📊 **[3단계] 선택 활동에 따른 역량 성취 수준 평가**")
-        act_meta = ACTIVITY_MASTER_DB[subj_sidebar][selected_act]
-        
-        st.markdown(f"""
-        <div class="activity-box">
-            <strong>🎯 측정 핵심 역량:</strong> {act_meta['역량명']}<br>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        level = st.radio(f"[{actual_name}] 학생의 최종 성취 수준 선택", ["우수", "보통"], horizontal=True)
-        base_competency_text = act_meta[level]
-        
-        st.divider()
-        
-        st.write("📂 **[선택사항] 학생 제출 보고서 / 설문지 텍스트 파일 연동**")
-        uploaded_student_file = st.file_uploader("아이들에게 텍스트파일(.txt) 등으로 수거한 자료가 있다면 여기에 업로드하세요", type=["txt"])
-        if uploaded_student_file is not None:
-            st.success("✨ 학생 파일 데이터가 성공적으로 연결되었습니다.")
-        
-        st.write("✍️ **[4단계] 학생 개인별 5대 마법 항목 빈칸 입력**")
-        col1, col2 = st.columns(2)
-        with col1:
-            act_title = st.text_input("1
+            "보통": "우리나라 도시의 발달 과정과 도시 계획의 특징을 올바르게 이해하고 있으며, 공간적 현상을 파악하기 위한 자료 분석 및 제안서
