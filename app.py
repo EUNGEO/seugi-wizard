@@ -1,7 +1,7 @@
 import streamlit as st
 
 # 페이지 환경 설정
-st.set_page_config(page_title="선생님 전용 생기부 마법사 v1.2", layout="wide")
+st.set_page_config(page_title="선생님 전용 생기부 마법사 v1.3", layout="wide")
 
 # --- 스타일링 (CSS) ---
 st.markdown("""
@@ -12,10 +12,24 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ 스마트 생기부 마법사 v1.2 (서술형 & 과목역량 내장형)")
-st.info("💡 [업데이트 완료] 교과 역량 데이터베이스 내장 및 수준별 차등 기재 기능이 적용되었습니다.")
+st.title("🛡️ 스마트 생기부 마법사 v1.3 (출석부 명단 완전 연동형)")
+st.info("💡 [명단 업데이트 완료] 한국지리(3학년) 및 통합사회(1학년) 학급별 명단 선택 기능이 추가되었습니다.")
 
-# --- 데이터베이스 (과목 역량 및 성취기준 맥락 내장) ---
+# --- 학생 명단 데이터베이스 ---
+STUDENTS_DB = {
+    "한국지리": {
+        "3학년 1반": ["김도엽", "박정우", "박준아", "서성웅", "심원경", "한기웅"],
+        "3학년 2반": ["곽영훈", "김민성", "김세영", "김재희", "나평안", "서승우", "이기훈", "김도현", "김성현", "김현중", "김효민", "류기훈", "박성욱", "윤지현", "이수호"]
+    },
+    "통합사회": {
+        "1학년 1반": ["강영훈", "김민찬", "김재엽", "김지호", "김진욱", "김태현", "김호영", "김환호", "김희락", "노동현", "박은혁", "박준성", "백이현", "서건희", "신백호", "양희성", "연태경", "오유찬", "유하빈", "윤성현", "이도현", "이상욱", "이승우"],
+        "1학년 2반": ["강하성", "권영하", "권준범", "김강호", "김동민", "김리안", "김민권", "김민재", "김중기", "김지후", "남상택", "박건웅", "박세진", "박정후", "손상범", "송준오", "신재원", "안현탁", "양승준", "오성택", "오연우", "윤정우", "이은유"],
+        "1학년 3반": ["KAN VLADISLAV", "강민준", "강범준", "고희준", "김동명", "김민범", "김비오", "김습정", "김재원", "김진구", "박수기", "박윤호", "박종하", "박휘건", "양희모", "유재현", "이민우", "이성민", "이재준", "이호진", "장민재", "장지호", "장호성"],
+        "1학년 4반": ["TSOI MAKSIM", "강민건", "강산", "고동균", "권혁준", "김승준", "김시훈", "김주호", "김치연", "김호범", "박보솔", "박성진", "변은혁", "설도윤", "손호빈", "신유민", "양서준", "오주호", "유승엽", "유우연", "윤태영", "이건우", "이경빈"]
+    }
+}
+
+# --- 과목 역량 데이터베이스 ---
 COMPETENCY_DB = {
     "한국지리": {
         "지리적 사고력 & 공간 조망": {
@@ -53,27 +67,33 @@ DATA_ACTS = {
     "창체": ["인문사회 토론", "아침맞이", "1인1역", "국어 글쓰기", "1학기 프로젝트", "학급 진로발표", "학급 독서발표"]
 }
 
-# --- 바이트 계산기 ---
 def calc_bytes(text):
     return len(text.encode('utf-8-sig'))
 
 # --- 사이드바 ---
 with st.sidebar:
-    st.header("👤 학생 정보 입력")
-    name = st.text_input("학생 성함", value="홍길동")
-    st.divider()
+    st.header("👤 학생 및 기록 정보")
     category = st.selectbox("기록 영역 선택", ["교과 세특", "창체(자율/진로)"])
+    st.divider()
+    
+    # 영역에 관계없이 과목과 명단을 유기적으로 연동하기 위한 설정
+    subj_sidebar = st.radio("기준 과목 선택", ["한국지리", "통합사회"], horizontal=True)
+    
+    available_classes = list(STUDENTS_DB[subj_sidebar].keys())
+    selected_class = st.selectbox("학급 선택", available_classes)
+    
+    student_list = STUDENTS_DB[subj_sidebar][selected_class]
+    student_name = st.selectbox("학생 이름 선택", student_list)
 
 # --- 메인 영역 ---
 if category == "교과 세특":
-    subj = st.radio("과목 선택", ["한국지리", "통합사회"], horizontal=True)
-    st.subheader(f"📖 {subj} 세특 핵심 역량 연동 작성")
+    st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_name}] 학생 세특 작성")
     
     col1, col2 = st.columns(2)
     with col1:
         st.write("🎯 **성취기준 기반 과목 역량 선택**")
         selected_comps = []
-        for comp_name in COMPETENCY_DB[subj].keys():
+        for comp_name in COMPETENCY_DB[subj_sidebar].keys():
             if st.checkbox(comp_name):
                 selected_comps.append(comp_name)
                 
@@ -81,18 +101,18 @@ if category == "교과 세특":
         st.write("📊 **학생 수행 수준 평가**")
         level = st.radio("이 학생의 성취 수준은?", ["우수", "보통"], horizontal=True)
         st.write("⚙️ **수행한 세부 활동 선택**")
-        selected_acts = st.multiselect("활동 선택", DATA_ACTS[subj])
+        selected_acts = st.multiselect("활동 선택", DATA_ACTS[subj_sidebar])
 
-    memo = st.text_area("✍️ 개별 특이사항 및 관찰 메모", placeholder="예: 구체적인 통계 자료를 인용함, 모둠 활동 시 갈등을 중재함 등")
+    memo = st.text_area("✍️ 개별 특이사항 및 관찰 메모", placeholder="예: 데이터 분석 과정이 정교함, 사회적 약자의 입장에 깊이 성찰함 등")
     
     if st.button("✨ 서술형 세특 문장 합성하기"):
-        comp_texts = [COMPETENCY_DB[subj][c][level] for c in selected_comps]
+        comp_texts = [COMPETENCY_DB[subj_sidebar][c][level] for c in selected_comps]
         act_text = f"교과 수업 중 " + ", ".join(selected_acts) + " 등의 활동을 주도적으로 수행하였으며," if selected_acts else ""
         
         base_combined = " ".join(comp_texts)
-        final_text = f"{name} 학생은 {base_combined} {act_text} {memo}".strip()
+        final_text = f"{student_name} 학생은 {base_combined} {act_text} {memo}".strip()
         
-        st.success("🎉 완성된 서술형 교과 세특 문구")
+        st.success(f"🎉 [{student_name}] 완성된 서술형 교과 세특 문구")
         st.code(final_text, language=None)
         
         b_size = calc_bytes(final_text)
@@ -102,7 +122,7 @@ if category == "교과 세특":
             st.success(f"✅ 나이스 입력 가능 수치: {b_size} / 1500 Byte")
 
 else:
-    st.subheader("🍀 학급 창체 활동 배치 (서술형 반영)")
+    st.subheader(f"🍀 {selected_class} [{student_name}] 학급 창체 활동 배치")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -113,11 +133,11 @@ else:
         career_sel = st.multiselect("진로활동 배치 항목", DATA_ACTS["창체"], key="career")
         
     if st.button("✨ 창체 기록 합치기"):
-        res_auto = f"{name} 학생은 " + " ".join([f"{a} 활동에 참여하여 타인을 배려하는 태도를 바탕으로 학급 공동체 발전에 기여함." for a in auto_sel]) if auto_sel else "배정된 활동 없음"
-        res_career = f"{name} 학생은 " + " ".join([f"{c} 활동을 통해 자신의 진로 장벽을 진단하고, 이를 극복하기 위한 구체적인 탐구 역량을 보여줌." for c in career_sel]) if career_sel else "배정된 활동 없음"
+        res_auto = f"{student_name} 학생은 " + " ".join([f"{a} 활동에 참여하여 타인을 배려하는 태도를 바탕으로 학급 공동체 발전에 기여함." for a in auto_sel]) if auto_sel else "배정된 활동 없음"
+        res_career = f"{student_name} 학생은 " + " ".join([f"{c} 활동을 통해 자신의 진로 장벽을 진단하고, 이를 극복하기 위한 구체적인 탐구 역량을 보여줌." for c in career_sel]) if career_sel else "배정된 활동 없음"
         
         st.divider()
-        st.success("🎉 최종 창체 서술형 결과")
+        st.success(f"🎉 [{student_name}] 최종 창체 서술형 결과")
         st.text_area("자율활동 복사용 (한도 1500 Byte)", res_auto, height=120)
         st.caption(f"자율 바이트: {calc_bytes(res_auto)} Byte")
         st.text_area("진로활동 복사용 (한도 2100 Byte)", res_career, height=120)
