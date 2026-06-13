@@ -92,18 +92,21 @@ if category == "교과 세특":
         st.code(current_generated_text)
 
 else:
-    st.subheader(f"🍀 {selected_class} 창체 활동별 세특 입력")
-    
-    # 7가지 활동을 사이드바가 아닌 메인 영역 탭으로 구현
+    # 1. 7가지 활동을 탭으로 먼저 배치
     tabs = st.tabs(CHANGCHE_ACTS)
     
+    # 2. 각 탭 내부에서 학생 리스트를 선택하고 내용을 입력
     for i, act_name in enumerate(CHANGCHE_ACTS):
         with tabs[i]:
-            st.subheader(f"📖 {act_name} 기록")
-            # 입력창 생성
-            content = st.text_area(f"{act_name} 세특 내용을 입력하세요:", key=f"text_{i}")
+            st.subheader(f"📖 [{act_name}] 활동 기록")
             
-            # 저장 버튼 및 결과 확인
-            if st.button(f"{act_name} 저장", key=f"btn_{i}"):
-                st.success(f"[{act_name}] 내용이 저장되었습니다.")
+            # 여기서 다시 한번 학생을 선택 (이 활동을 한 학생 명단)
+            target_student = st.selectbox(f"{act_name}을(를) 기록할 학생 선택", STUDENTS_DB["창체"]["3학년 2반"], key=f"sel_{i}")
+            
+            # 입력창 생성
+            content = st.text_area(f"{target_student} 학생의 {act_name} 세특 내용:", key=f"text_{i}")
+            
+            # 저장 버튼
+            if st.button(f"{target_student} 저장", key=f"btn_{i}"):
+                st.success(f"{target_student} 학생의 [{act_name}] 기록이 저장되었습니다.")
                 st.code(content)
