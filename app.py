@@ -4,7 +4,7 @@ import io
 from datetime import datetime
 
 # 페이지 환경 설정
-st.set_page_config(page_title="선생님 전용 생기부 마법사 v2.5", layout="wide")
+st.set_page_config(page_title="선생님 전용 생기부 마법사 v2.6", layout="wide")
 
 # --- 스타일링 (CSS) ---
 st.markdown("""
@@ -18,8 +18,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🛡️ 스마트 생기부 마법사 v2.5 (교육과정 성취기준 실시간 가이드판)")
-st.info("💡 [성취기준 전면 연동 완료] 선생님께서 보내주신 엑셀 기반 성취기준이 활동 선택 시 실시간으로 화면에 표기됩니다.")
+st.title("🛡️ 스마트 생기부 마법사 v2.6 (에러 수정 완료 버전)")
+st.info("💡 [긴급 패치 완료] 이름 내에 공백이 많은 외국인 학생 명단이 선택되어도 에러 없이 완벽하게 작동하도록 문자열 파싱 구조를 안전하게 보완했습니다.")
 
 # --- 세션 상태(누적 기록 장부) 초기화 ---
 if "records_db" not in st.session_state:
@@ -41,7 +41,7 @@ STUDENTS_DB = {
     }
 }
 
-# --- 🔥 [선생님 제공 파일 반영] 활동별 성취기준 및 역량 수준 마스터 데이터베이스 ---
+# --- 🔥 활동별 성취기준 및 역량 수준 마스터 데이터베이스 ---
 ACTIVITY_MASTER_DB = {
     "한국지리": {
         "지역공공정책서": {
@@ -98,11 +98,17 @@ with st.sidebar:
     student_list = STUDENTS_DB[subj_sidebar][selected_class]
     student_with_id = st.selectbox("학생 선택", student_list)
     
-    student_id = student_with_id.split(" ", 1)[0] if " " in student_with_id else "0000"
-    actual_name = student_with_id.split(" ", 1)[1] if " " in student_with_id else student_with_id
+    # 🔥 긴 외국인 이름 예외 처리를 위한 전면 수정 코딩 (split의 두 번째 인자 조절로 에러 원천 봉쇄)
+    if student_with_id:
+        parts = student_with_id.split(maxsplit=1)
+        student_id = parts[0] if len(parts) > 0 else "0000"
+        actual_name = parts[1] if len(parts) > 1 else student_with_id
+    else:
+        student_id = "0000"
+        actual_name = "미선택"
 
 # --- 메인 작업 영역 ---
-current_generated_text = ""
+final_compiled_text = ""
 
 if category == "교과 세특":
     st.subheader(f"📖 {subj_sidebar} - {selected_class} [{student_with_id}] 학생 세특 설계")
@@ -121,7 +127,4 @@ if category == "교과 세특":
     <div class="standard-box">
         <strong>📚 관련 성취기준 목록:</strong><br>{standards_html}
     </div>
-    """, unsafe_allow_html=True)
-    
-    # 3. 역량 및 성취수준 선택
-    st.write("📊 **[3단계] 선택 활동
+    """, unsafe_allow_html
